@@ -1,0 +1,210 @@
+>> Show-Tree -Path "C:\lms-scolaire" -MaxDepth 4
+C:\lms-scolaire\
+├── 📁 .vscode
+├── 📁 apps
+│   ├── 📁 api
+│   │   ├── 📁 eleve
+│   │   │   └── 📁 quiz
+│   │   │       └── 📁 attempt
+│   │   ├── 📁 enseignant
+│   │   │   ├── 📁 banque
+│   │   │   │   ├── 📁 [bankId]
+│   │   │   │   └── 📄 route.ts
+│   │   │   └── 📁 quiz
+│   │   │       └── 📁 [quizId]
+│   │   ├── 📁 prisma
+│   │   │   ├── 📁 migrations
+│   │   │   │   ├── 📁 20260813001613_add_notifications
+│   │   │   │   ├── 📁 20260813222802_add_messaging
+│   │   │   │   ├── 📁 20260915223021_add_explanation_to_questions
+│   │   │   │   ├── 📁 20260916072437_remove_quiz_attempt_unique
+│   │   │   │   ├── 📁 20260916074321_add_question_bank
+│   │   │   │   ├── 📁 20260916121926_add_shuffle_options
+│   │   │   │   ├── 📁 20260917213002_add_svg_to_questions
+│   │   │   │   └── 📄 migration_lock.toml
+│   │   │   └── 📄 schema.prisma
+│   │   ├── 📁 src
+│   │   │   ├── 📁 controllers
+│   │   │   ├── 📁 middleware
+│   │   │   │   └── 📄 errorHandler.ts
+│   │   │   ├── 📁 routes
+│   │   │   │   └── 📄 auth.routes.ts
+│   │   │   ├── 📁 services
+│   │   │   ├── 📁 utils
+│   │   │   │   ├── 📄 db.ts
+│   │   │   │   └── 📄 logger.ts
+│   │   │   └── 📄 index.ts
+│   │   ├── 📄 .env
+│   │   ├── 📄 package.json
+│   │   ├── 📄 package-lock.json
+│   │   └── 📄 tsconfig.json
+│   ├── 📁 docs
+│   │   ├── 📁 app
+│   │   │   ├── 📁 fonts
+│   │   │   │   ├── 📄 GeistMonoVF.woff
+│   │   │   │   └── 📄 GeistVF.woff
+│   │   │   ├── 📄 favicon.ico
+│   │   │   ├── 📄 globals.css
+│   │   │   ├── 📄 layout.tsx
+│   │   │   ├── 📄 page.module.css
+│   │   │   └── 📄 page.tsx
+│   │   ├── 📁 public
+│   │   │   ├── 📄 file-text.svg
+│   │   │   ├── 📄 globe.svg
+│   │   │   ├── 📄 next.svg
+│   │   │   ├── 📄 turborepo-dark.svg
+│   │   │   ├── 📄 turborepo-light.svg
+│   │   │   ├── 📄 vercel.svg
+│   │   │   └── 📄 window.svg
+│   │   ├── 📄 .gitignore
+│   │   ├── 📄 eslint.config.js
+│   │   ├── 📄 next.config.js
+│   │   ├── 📄 next-env.d.ts
+│   │   ├── 📄 package.json
+│   │   ├── 📄 README.md
+│   │   └── 📄 tsconfig.json
+│   └── 📁 web
+│       ├── 📁 app
+│       │   ├── 📁 (dashboard)
+│       │   │   ├── 📁 admin
+│       │   │   ├── 📁 eleve
+│       │   │   ├── 📁 enseignant
+│       │   │   ├── 📁 parent
+│       │   │   └── 📄 layout.tsx
+│       │   ├── 📁 api
+│       │   │   ├── 📁 eleve
+│       │   │   ├── 📁 enseignant
+│       │   │   ├── 📁 messages
+│       │   │   ├── 📁 notifications
+│       │   │   ├── 📁 test-db
+│       │   │   ├── 📁 uploadthing
+│       │   │   ├── 📁 webhooks
+│       │   │   └── 📄 route.ts
+│       │   ├── 📁 dashboard
+│       │   │   └── 📄 page.tsx
+│       │   ├── 📁 sign-in
+│       │   │   └── 📁 [[...sign-in]]
+│       │   ├── 📁 sign-up
+│       │   │   └── 📁 [[...sign-up]]
+│       │   ├── 📄 favicon.ico
+│       │   ├── 📄 globals.css
+│       │   ├── 📄 layout.tsx
+│       │   └── 📄 page.tsx
+│       ├── 📁 components
+│       │   ├── 📁 ui
+│       │   │   ├── 📄 LaTeX.tsx
+│       │   │   └── 📄 SVGDisplay.tsx
+│       │   └── 📁 upload
+│       │       ├── 📄 FileUpload.tsx
+│       │       └── 📄 SVGEditor.tsx
+│       ├── 📁 lib
+│       │   ├── 📁 pdf
+│       │   │   ├── 📄 bulletin.ts
+│       │   │   └── 📄 quiz-results.ts
+│       │   ├── 📄 db.ts
+│       │   ├── 📄 quiz-results.ts
+│       │   ├── 📄 render-latex.ts
+│       │   └── 📄 shuffle.ts
+│       ├── 📁 prisma
+│       │   └── 📄 schema.prisma
+│       ├── 📁 public
+│       │   ├── 📄 file.svg
+│       │   ├── 📄 globe.svg
+│       │   ├── 📄 next.svg
+│       │   ├── 📄 vercel.svg
+│       │   └── 📄 window.svg
+│       ├── 📁 utils
+│       │   └── 📄 uploadthing.ts
+│       ├── 📄 .env
+│       ├── 📄 .env.local
+│       ├── 📄 .gitignore
+│       ├── 📄 AGENTS.md
+│       ├── 📄 CLAUDE.md
+│       ├── 📄 eslint.config.mjs
+│       ├── 📄 next.config.ts
+│       ├── 📄 next-env.d.ts
+│       ├── 📄 package.json
+│       ├── 📄 package-lock.json
+│       ├── 📄 postcss.config.mjs
+│       ├── 📄 proxy.ts
+│       ├── 📄 README.md
+│       └── 📄 tsconfig.json
+├── 📁 backup
+│   ├── 📁 app
+│   │   ├── 📁 (dashboard)
+│   │   │   ├── 📁 admin
+│   │   │   │   └── 📄 page.tsx
+│   │   │   ├── 📁 eleve
+│   │   │   │   └── 📄 page.tsx
+│   │   │   ├── 📁 enseignant
+│   │   │   │   ├── 📁 cours
+│   │   │   │   └── 📄 page.tsx
+│   │   │   ├── 📁 parent
+│   │   │   │   └── 📄 page.tsx
+│   │   │   └── 📄 layout.tsx
+│   │   ├── 📁 api
+│   │   │   ├── 📁 test-db
+│   │   │   │   └── 📄 route.ts
+│   │   │   └── 📁 webhooks
+│   │   │       └── 📁 clerk
+│   │   ├── 📁 dashboard
+│   │   │   └── 📄 page.tsx
+│   │   ├── 📁 sign-in
+│   │   │   └── 📁 [[...sign-in]]
+│   │   │       └── 📄 page.tsx
+│   │   ├── 📁 sign-up
+│   │   │   └── 📁 [[...sign-up]]
+│   │   │       └── 📄 page.tsx
+│   │   ├── 📄 favicon.ico
+│   │   ├── 📄 globals.css
+│   │   ├── 📄 layout.tsx
+│   │   └── 📄 page.tsx
+│   └── 📁 lib
+│       ├── 📄 db.ts
+│       └── 📄 notifications.ts
+├── 📁 docker
+│   ├── 📄 docker-compose.yml
+│   ├── 📄 Dockerfile.api
+│   └── 📄 Dockerfile.web
+├── 📁 packages
+│   ├── 📁 eslint-config
+│   │   ├── 📄 base.js
+│   │   ├── 📄 next.js
+│   │   ├── 📄 package.json
+│   │   ├── 📄 react-internal.js
+│   │   └── 📄 README.md
+│   ├── 📁 shared
+│   │   ├── 📁 constants
+│   │   │   ├── 📄 matieres.ts
+│   │   │   └── 📄 niveaux.ts
+│   │   ├── 📁 types
+│   │   │   └── 📄 user.ts
+│   │   ├── 📄 index.ts
+│   │   ├── 📄 package.json
+│   │   ├── 📄 package-lock.json
+│   │   └── 📄 tsconfig.json
+│   ├── 📁 typescript-config
+│   │   ├── 📄 base.json
+│   │   ├── 📄 nextjs.json
+│   │   ├── 📄 package.json
+│   │   └── 📄 react-library.json
+│   └── 📁 ui
+│       ├── 📁 src
+│       │   ├── 📄 button.tsx
+│       │   ├── 📄 card.tsx
+│       │   └── 📄 code.tsx
+│       ├── 📄 eslint.config.mjs
+│       ├── 📄 package.json
+│       └── 📄 tsconfig.json
+├── 📄 .gitignore
+├── 📄 .npmrc
+├── 📄 cercle.svg
+├── 📄 Fiche technique.txt
+├── 📄 fix_encoding.sql
+├── 📄 fix_options.sql
+├── 📄 package.json
+├── 📄 package-lock.json
+├── 📄 README.md
+├── 📄 triangle.svg
+└── 📄 turbo.json
+PS C:\lms-scolaire>

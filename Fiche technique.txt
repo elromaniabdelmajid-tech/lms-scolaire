@@ -1,0 +1,1392 @@
+🚀 Prochaines étapes
+Maintenant que le projet est fonctionnel, passons à la suite du développement :
+
+Option 1 : Déploiement - Mettre en ligne sur Vercel + Supabase
+
+Option 2 : Application mobile - React Native
+
+Option 3 : Vidéoconférence - WebRTC
+
+Option 4 : IA pédagogique - Recommandations personnalisées
+
+📋 Récapitulatif complet du projet LMS
+Module	Fonctionnalités	Statut
+Enseignant	Cours, chapitres, ressources, quiz	✅
+Banque de questions	✅
+Import/Export CSV	✅
+Statistiques	✅
+Export PDF	✅
+Élève	Cours, quiz, progression	✅
+Feedback automatique	✅
+Gamification	✅
+Notifications	✅
+Messagerie	✅
+Parent	Suivi des enfants	✅
+Admin	Statistiques globales	✅
+LaTeX	Formules mathématiques	✅
+Félicitations pour ce projet complet ! 🎓🚀
+
+Que voulez-vous développer ensuite ?
+
+ce que je veux c'est préparer un cours depuis l'app : plan cours pdf +vidéo +série d'exercice pdf +quiz de teste des acquis latex ou svg  import de puis  banque depuis l'app
+Excellente vision ! Vous voulez créer un workflow complet de préparation de cours depuis l'application. Voici comment structurer cela.
+
+🎯 Architecture du workflow de préparation de cours
+text
+┌─────────────────────────────────────────────────────────────┐
+│                    PRÉPARATION D'UN COURS                    │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  1. PLAN DE COURS (PDF)                                     │
+│     └── Upload du document + description                     │
+│                                                              │
+│  2. VIDÉO                                                    │
+│     └── Upload ou lien YouTube/Vimeo                         │
+│                                                              │
+│  3. SÉRIE D'EXERCICES (PDF)                                 │
+│     └── Upload du document                                   │
+│                                                              │
+│  4. QUIZ DE TEST DES ACQUIS                                 │
+│     ├── LaTeX pour les formules                             │
+│     ├── SVG pour les schémas                                │
+│     └── Import depuis la banque                             │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+📁 Structure actuelle vs. structure souhaitée
+Actuel
+text
+Cours
+└── Chapitres
+    ├── Ressources (PDF, vidéo, lien)
+    └── Quiz
+        └── Questions
+            └── Options
+Souhaité
+text
+Cours
+└── Chapitres
+    ├── 📄 Plan de cours (PDF)
+    ├── 🎬 Vidéo
+    ├── 📝 Série d'exercices (PDF)
+    └── 📊 Quiz de test des acquis
+        ├── Questions LaTeX
+        ├── Questions SVG
+        └── Import banque
+🔧 Ce qui existe déjà
+Fonctionnalité	Statut
+Création de cours	✅
+Création de chapitres	✅
+Ajout de ressources (PDF, vidéo, lien)	✅
+Création de quiz	✅
+Questions avec LaTeX	✅
+Import depuis banque	✅
+Import/Export CSV	✅
+🚀 Ce qu'il faut ajouter
+1. Upload de fichiers PDF
+Actuellement : Les ressources sont ajoutées par URL
+Souhaité : Upload direct de fichiers PDF
+
+Solution : Utiliser UploadThing ou Cloudinary
+
+powershell
+npm install uploadthing @uploadthing/react
+2. Upload de vidéos
+Actuellement : Lien YouTube/Vimeo
+Souhaité : Upload direct de vidéos
+
+Solution : Utiliser Mux ou Cloudinary
+
+3. Support SVG dans les questions
+Actuellement : LaTeX uniquement
+Souhaité : LaTeX + SVG
+
+Solution : Ajouter un champ svg aux questions
+
+4. Import de banque avec prévisualisation
+Actuellement : Import basique
+Souhaité : Prévisualisation avant import
+
+📝 Plan de développement
+Étape 1 : Upload de fichiers PDF
+1.1 Installer UploadThing
+powershell
+cd C:\lms-scolaire\apps\web
+npm install uploadthing @uploadthing/react
+1.2 Créer la configuration
+app/api/uploadthing/core.ts
+
+typescript
+import { createUploadthing, type FileRouter } from "uploadthing/next"
+import { auth } from '@clerk/nextjs/server'
+
+const f = createUploadthing()
+
+export const ourFileRouter = {
+  pdfUploader: f({ pdf: { maxFileSize: "16MB", maxFileCount: 5 } })
+    .middleware(async ({ req }) => {
+      const { userId } = await auth()
+      if (!userId) throw new Error("Non authentifié")
+      return { userId }
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload PDF terminé:", file.url)
+      return { url: file.url }
+    }),
+
+  videoUploader: f({ video: { maxFileSize: "256MB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => {
+      const { userId } = await auth()
+      if (!userId) throw new Error("Non authentifié")
+      return { userId }
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload vidéo terminé:", file.url)
+      return { url: file.url }
+    }),
+
+  imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => {
+      const { userId } = await auth()
+      if (!userId) throw new Error("Non authentifié")
+      return { userId }
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload image terminé:", file.url)
+      return { url: file.url }
+    }),
+} satisfies FileRouter
+
+export type OurFileRouter = typeof ourFileRouter
+app/api/uploadthing/route.ts
+
+typescript
+import { createRouteHandler } from "uploadthing/next"
+import { ourFileRouter } from "./core"
+
+export const { GET, POST } = createRouteHandler({
+  router: ourFileRouter,
+})
+1.3 Composant d'upload
+components/upload/FileUpload.tsx
+
+typescript
+'use client'
+
+import { UploadButton } from '@uploadthing/react'
+import { OurFileRouter } from '@/app/api/uploadthing/core'
+
+interface FileUploadProps {
+  onUploadComplete: (url: string) => void
+  type?: 'pdf' | 'video' | 'image'
+}
+
+export function FileUpload({ onUploadComplete, type = 'pdf' }: FileUploadProps) {
+  const endpoint = type === 'pdf' ? 'pdfUploader' : type === 'video' ? 'videoUploader' : 'imageUploader'
+
+  return (
+    <UploadButton<OurFileRouter, any>
+      endpoint={endpoint}
+      onClientUploadComplete={(res) => {
+        if (res && res[0]) {
+          onUploadComplete(res[0].url)
+        }
+      }}
+      onUploadError={(error) => {
+        alert(`Erreur: ${error.message}`)
+      }}
+    />
+  )
+}
+Étape 2 : Support SVG dans les questions
+2.1 Ajouter le champ dans Prisma
+prisma/schema.prisma
+
+prisma
+model Question {
+  id          String   @id @default(cuid())
+  text        String
+  type        String
+  points      Int      @default(1)
+  position    Int
+  explanation String?
+  svg         String?  // ← NOUVEAU : contenu SVG
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  quizId      String
+  quiz        Quiz     @relation(fields: [quizId], references: [id])
+
+  options     Option[]
+  answers     Answer[]
+
+  @@map("questions")
+}
+2.2 Migration
+powershell
+cd C:\lms-scolaire\apps\api
+npx prisma migrate dev --name add_svg_to_questions
+npx prisma generate
+2.3 Composant SVG
+components/ui/SVGDisplay.tsx
+
+typescript
+'use client'
+
+interface SVGDisplayProps {
+  svg: string
+  className?: string
+}
+
+export function SVGDisplay({ svg, className = '' }: SVGDisplayProps) {
+  return (
+    <div 
+      className={`flex justify-center my-4 ${className}`}
+      dangerouslySetInnerHTML={{ __html: svg }} 
+    />
+  )
+}
+Étape 3 : Interface de préparation de cours
+3.1 Page de préparation
+app/(dashboard)/enseignant/cours/[courseId]/preparer/page.tsx
+
+typescript
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
+import { db } from '@/lib/db'
+import Link from 'next/link'
+
+interface PreparePageProps {
+  params: Promise<{ courseId: string }> | { courseId: string }
+}
+
+export default async function PreparePage({ params }: PreparePageProps) {
+  const { userId } = await auth()
+
+  if (!userId) {
+    redirect('/sign-in')
+  }
+
+  const user = await db.user.findUnique({
+    where: { clerkId: userId }
+  })
+
+  if (!user || user.role !== 'ENSEIGNANT') {
+    redirect('/dashboard')
+  }
+
+  const resolvedParams = await Promise.resolve(params)
+  const courseId = resolvedParams.courseId
+
+  const course = await db.course.findUnique({
+    where: { id: courseId },
+    include: {
+      chapters: {
+        orderBy: { position: 'asc' },
+        include: {
+          resources: true,
+          quizzes: {
+            include: {
+              questions: true
+            }
+          }
+        }
+      }
+    }
+  })
+
+  if (!course || course.instructorId !== user.id) {
+    redirect('/enseignant')
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <Link href="/enseignant" className="text-indigo-600 hover:text-indigo-800 mb-4 block">
+            ← Retour au tableau de bord
+          </Link>
+          <h1 className="text-3xl font-bold">📚 Préparer le cours</h1>
+          <p className="text-gray-600">{course.title}</p>
+        </div>
+
+        {/* Étapes de préparation */}
+        <div className="space-y-6">
+          {course.chapters.map((chapter, index) => (
+            <div key={chapter.id} className="bg-white rounded-xl shadow-md p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h2 className="text-xl font-bold">
+                    #{index + 1} {chapter.title}
+                  </h2>
+                  <p className="text-sm text-gray-500">{chapter.description}</p>
+                </div>
+                <span className={`text-xs px-2 py-1 rounded ${chapter.isPublished ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  {chapter.isPublished ? '✅ Publié' : '📝 Brouillon'}
+                </span>
+              </div>
+
+              {/* Checklist de préparation */}
+              <div className="space-y-3">
+                {/* 1. Plan de cours */}
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">📄</span>
+                    <div>
+                      <p className="font-medium">Plan de cours (PDF)</p>
+                      <p className="text-sm text-gray-500">
+                        {chapter.resources.filter(r => r.type === 'PDF').length} document(s)
+                      </p>
+                    </div>
+                  </div>
+                  <Link href={`/enseignant/chapitres/${chapter.id}/contenu`}>
+                    <button className="text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200 transition">
+                      Gérer
+                    </button>
+                  </Link>
+                </div>
+
+                {/* 2. Vidéo */}
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🎬</span>
+                    <div>
+                      <p className="font-medium">Vidéo</p>
+                      <p className="text-sm text-gray-500">
+                        {chapter.resources.filter(r => r.type === 'VIDEO').length} vidéo(s)
+                      </p>
+                    </div>
+                  </div>
+                  <Link href={`/enseignant/chapitres/${chapter.id}/contenu`}>
+                    <button className="text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200 transition">
+                      Gérer
+                    </button>
+                  </Link>
+                </div>
+
+                {/* 3. Série d'exercices */}
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">📝</span>
+                    <div>
+                      <p className="font-medium">Série d'exercices (PDF)</p>
+                      <p className="text-sm text-gray-500">
+                        {chapter.resources.filter(r => r.type === 'DOC').length} document(s)
+                      </p>
+                    </div>
+                  </div>
+                  <Link href={`/enseignant/chapitres/${chapter.id}/contenu`}>
+                    <button className="text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200 transition">
+                      Gérer
+                    </button>
+                  </Link>
+                </div>
+
+                {/* 4. Quiz */}
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">📊</span>
+                    <div>
+                      <p className="font-medium">Quiz de test des acquis</p>
+                      <p className="text-sm text-gray-500">
+                        {chapter.quizzes.length} quiz • {chapter.quizzes.reduce((acc, q) => acc + q.questions.length, 0)} questions
+                      </p>
+                    </div>
+                  </div>
+                  <Link href={`/enseignant/chapitres/${chapter.id}/quiz`}>
+                    <button className="text-sm bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200 transition">
+                      Gérer
+                    </button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Progression */}
+              <div className="mt-4 pt-4 border-t">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-500">Progression de la préparation</span>
+                  <span className="font-medium text-indigo-600">
+                    {Math.round((
+                      (chapter.resources.length > 0 ? 25 : 0) +
+                      (chapter.quizzes.length > 0 ? 25 : 0)
+                    ))}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-indigo-600 h-2 rounded-full transition-all"
+                    style={{ 
+                      width: `${Math.min(
+                        (chapter.resources.length > 0 ? 50 : 0) +
+                        (chapter.quizzes.length > 0 ? 50 : 0),
+                        100
+                      )}%` 
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+📋 Résumé du workflow complet
+Étape	Action	Où
+1	Créer le cours	/enseignant/cours/creer
+2	Ajouter les chapitres	/enseignant/cours/[courseId]/chapitres
+3	Uploader le plan de cours (PDF)	/enseignant/chapitres/[chapterId]/contenu
+4	Ajouter la vidéo	/enseignant/chapitres/[chapterId]/contenu
+5	Uploader la série d'exercices (PDF)	/enseignant/chapitres/[chapterId]/contenu
+6	Créer le quiz	/enseignant/chapitres/[chapterId]/quiz
+7	Ajouter les questions (LaTeX/SVG)	/enseignant/quiz/[quizId]/questions
+8	Importer depuis la banque	/enseignant/quiz/[quizId]/import-banque
+🚀 Voulez-vous que je développe
+Option 1 : L'upload de fichiers (PDF, vidéo) avec UploadThing
+
+Option 2 : Le support SVG dans les questions
+
+Option 3 : La page de préparation de cours complète
+
+Option 4 : Tout en même temps
+
+Dites-moi par où commencer ! 🚀
+
+dans l'ordre
+Parfait ! Développons dans l'ordre :
+
+Upload de fichiers (PDF, vidéo)
+
+Support SVG dans les questions
+
+Page de préparation de cours
+
+Commençons par l'upload de fichiers.
+
+📤 Étape 1 : Upload de fichiers avec UploadThing
+1.1 Installer UploadThing
+powershell
+cd C:\lms-scolaire\apps\web
+npm install uploadthing @uploadthing/react
+1.2 Créer un compte UploadThing
+Allez sur https://uploadthing.com
+
+Créez un compte gratuit
+
+Créez une nouvelle application
+
+Copiez les clés API
+
+1.3 Ajouter les variables d'environnement
+Modifiez C:\lms-scolaire\apps\web\.env.local :
+
+env
+UPLOADTHING_SECRET=sk_live_xxxxx
+UPLOADTHING_APP_ID=xxxxx
+1.4 Créer la configuration UploadThing
+app/api/uploadthing/core.ts
+
+typescript
+import { createUploadthing, type FileRouter } from "uploadthing/next"
+import { auth } from '@clerk/nextjs/server'
+
+const f = createUploadthing()
+
+export const ourFileRouter = {
+  // Upload de PDF
+  pdfUploader: f({ pdf: { maxFileSize: "16MB", maxFileCount: 5 } })
+    .middleware(async ({ req }) => {
+      const { userId } = await auth()
+      if (!userId) throw new Error("Non authentifié")
+      return { userId }
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload PDF terminé:", file.url)
+      return { url: file.url, name: file.name }
+    }),
+
+  // Upload de vidéo
+  videoUploader: f({ video: { maxFileSize: "256MB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => {
+      const { userId } = await auth()
+      if (!userId) throw new Error("Non authentifié")
+      return { userId }
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload vidéo terminé:", file.url)
+      return { url: file.url, name: file.name }
+    }),
+
+  // Upload d'image
+  imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => {
+      const { userId } = await auth()
+      if (!userId) throw new Error("Non authentifié")
+      return { userId }
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload image terminé:", file.url)
+      return { url: file.url, name: file.name }
+    }),
+
+  // Upload de document
+  documentUploader: f({ 
+    pdf: { maxFileSize: "16MB", maxFileCount: 3 },
+    "application/msword": { maxFileSize: "16MB", maxFileCount: 3 },
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": { maxFileSize: "16MB", maxFileCount: 3 }
+  })
+    .middleware(async ({ req }) => {
+      const { userId } = await auth()
+      if (!userId) throw new Error("Non authentifié")
+      return { userId }
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload document terminé:", file.url)
+      return { url: file.url, name: file.name }
+    }),
+} satisfies FileRouter
+
+export type OurFileRouter = typeof ourFileRouter
+app/api/uploadthing/route.ts
+
+typescript
+import { createRouteHandler } from "uploadthing/next"
+import { ourFileRouter } from "./core"
+
+export const { GET, POST } = createRouteHandler({
+  router: ourFileRouter,
+})
+1.5 Créer le composant d'upload
+components/upload/FileUpload.tsx
+
+typescript
+'use client'
+
+import { UploadButton } from '@uploadthing/react'
+import { OurFileRouter } from '@/app/api/uploadthing/core'
+
+interface FileUploadProps {
+  onUploadComplete: (url: string, name: string) => void
+  type?: 'pdf' | 'video' | 'image' | 'document'
+}
+
+export function FileUpload({ onUploadComplete, type = 'pdf' }: FileUploadProps) {
+  const endpoint = 
+    type === 'pdf' ? 'pdfUploader' : 
+    type === 'video' ? 'videoUploader' : 
+    type === 'image' ? 'imageUploader' : 
+    'documentUploader'
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <UploadButton<OurFileRouter, any>
+        endpoint={endpoint}
+        onClientUploadComplete={(res) => {
+          if (res && res[0]) {
+            onUploadComplete(res[0].url, res[0].name)
+          }
+        }}
+        onUploadError={(error) => {
+          alert(`Erreur: ${error.message}`)
+        }}
+        appearance={{
+          button: "bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition",
+          allowedContent: "text-sm text-gray-500"
+        }}
+      />
+    </div>
+  )
+}
+1.6 Modifier le formulaire de ressources
+app/(dashboard)/enseignant/chapitres/[chapterId]/contenu/components/ResourceForm.tsx
+
+typescript
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { FileUpload } from '@/components/upload/FileUpload'
+
+interface ResourceFormProps {
+  chapterId: string
+}
+
+const RESOURCE_TYPES = [
+  { value: 'PDF', label: '📄 PDF' },
+  { value: 'VIDEO', label: '🎬 Vidéo' },
+  { value: 'DOC', label: '📝 Document' },
+  { value: 'LINK', label: '🔗 Lien' },
+  { value: 'IMAGE', label: '🖼️ Image' },
+]
+
+export function ResourceForm({ chapterId }: ResourceFormProps) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [uploadMode, setUploadMode] = useState<'url' | 'file'>('url')
+  const [formData, setFormData] = useState({
+    title: '',
+    type: 'PDF',
+    url: ''
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const response = await fetch(`/api/enseignant/chapitres/${chapterId}/ressources`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+
+      if (response.ok) {
+        router.refresh()
+        setFormData({
+          title: '',
+          type: 'PDF',
+          url: ''
+        })
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Erreur lors de l\'ajout de la ressource')
+      }
+    } catch (error) {
+      console.error('Erreur:', error)
+      alert('Une erreur est survenue')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUploadComplete = (url: string, name: string) => {
+    setFormData(prev => ({
+      ...prev,
+      url,
+      title: prev.title || name
+    }))
+  }
+
+  const getUploadType = (type: string): 'pdf' | 'video' | 'image' | 'document' => {
+    if (type === 'PDF') return 'pdf'
+    if (type === 'VIDEO') return 'video'
+    if (type === 'IMAGE') return 'image'
+    return 'document'
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Titre *
+          </label>
+          <input
+            type="text"
+            required
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="Ex: Cours vidéo - Introduction"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Type *
+          </label>
+          <select
+            required
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={formData.type}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+          >
+            {RESOURCE_TYPES.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Mode d'ajout
+          </label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setUploadMode('url')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm transition ${
+                uploadMode === 'url' 
+                  ? 'bg-indigo-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              🔗 URL
+            </button>
+            <button
+              type="button"
+              onClick={() => setUploadMode('file')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm transition ${
+                uploadMode === 'file' 
+                  ? 'bg-indigo-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              📤 Fichier
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {uploadMode === 'url' ? (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            URL / Fichier *
+          </label>
+          <input
+            type="url"
+            required
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={formData.url}
+            onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+            placeholder="https://exemple.com/fichier.pdf"
+          />
+        </div>
+      ) : (
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+          <FileUpload 
+            onUploadComplete={handleUploadComplete}
+            type={getUploadType(formData.type)}
+          />
+          {formData.url && (
+            <p className="text-sm text-green-600 mt-2">
+              ✅ Fichier uploadé : {formData.url.substring(0, 50)}...
+            </p>
+          )}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={loading || !formData.url}
+        className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+      >
+        {loading ? 'Ajout en cours...' : 'Ajouter la ressource'}
+      </button>
+    </form>
+  )
+}
+1.7 Ajouter le CSS UploadThing
+app/globals.css
+
+css
+/* Ajouter à la fin */
+@import '@uploadthing/react/styles.css';
+🚀 Redémarrer le serveur
+powershell
+cd C:\lms-scolaire\apps\web
+npm run dev
+🧪 Tester
+Connectez-vous en tant qu'enseignant
+
+Allez sur /enseignant
+
+Ouvrez un cours → "Gérer les chapitres"
+
+Cliquez sur "📄 Gérer le contenu" pour un chapitre
+
+Dans le formulaire, cliquez sur "📤 Fichier"
+
+Uploadez un PDF ou une vidéo
+
+Vérifiez que le fichier apparaît dans la liste des ressources
+
+📋 Dites-moi
+Avez-vous créé un compte UploadThing ?
+
+Avez-vous ajouté les clés dans .env.local ?
+
+L'upload fonctionne-t-il ?
+
+Avec ces informations, je pourrai vous aider à passer à l'étape suivante. 🚀
+
+UploadThing période d'essaie ou gratuit
+20 pages Web trouvées.
+UploadThing propose bel et bien une formule gratuite, et c'est une excellente nouvelle pour votre projet.
+
+🆓 Ce que propose le plan gratuit
+Le plan gratuit, appelé simplement "Free", vous donne accès à :
+
+2 Go de stockage : C'est suffisant pour héberger des plans de cours PDF, des séries d'exercices et des vidéos de test .
+
+Uploads et téléchargements illimités : Vous n'avez aucune limite sur le nombre de fichiers que vous envoyez ou que les élèves consultent .
+
+Journal d'audit de 7 jours : Vous pouvez voir l'historique des uploads récents .
+
+📈 La suite de l'offre (payante)
+Si votre projet grandit et que les 2 Go deviennent insuffisants, voici les options payantes :
+
+100 Go pour 10 $/mois : Idéal pour les équipes ou si vous stockez beaucoup de documents .
+
+250 Go pour 25 $/mois : Une formule "usage-based" pour les gros besoins .
+
+💡 Pourquoi c'est un bon choix pour votre LMS
+Même avec le plan gratuit, UploadThing est parfaitement adapté à votre projet pour plusieurs raisons :
+
+Intégration native : Il est conçu pour fonctionner de manière très fluide avec Next.js et TypeScript, la pile technique que vous utilisez .
+
+Sécurité : Il gère l'authentification côté serveur, ce qui signifie que seuls les utilisateurs connectés (vos enseignants) pourront uploader des fichiers .
+
+Simplicité : Pas besoin de configurer un serveur ou un stockage complexe. Vous définissez les types de fichiers autorisés (PDF, vidéo) et c'est prêt .
+
+Avec 2 Go gratuits, vous avez largement de quoi tester et même lancer votre plateforme pour un petit établissement.
+
+UPLOADTHING_TOKEN='eyJhcGlLZXkiOiJza19saXZlXzcwZmUzNDJiYmQ1NWI1YzdlOGQ1ZDM3YzE0MTU1NDQ1NGVkMjU0MjllOTIxYjI0MWJiYjZmZjY1ZGRlZTMyZmUiLCJhcHBJZCI6Iml2eGwwZzlxbzMiLCJyZWdpb25zIjpbInNlYTEiXX0='
+19 pages Web trouvées.
+Parfait, vous avez votre token UploadThing ! Je vais vous guider pour le configurer correctement dans votre projet.
+
+🔧 Configuration d'UploadThing avec votre Token
+Étape 1 : Ajouter le token dans .env.local
+Ouvrez C:\lms-scolaire\apps\web\.env.local et ajoutez :
+
+env
+UPLOADTHING_TOKEN='eyJhcGlLZXkiOiJza19saXZlXzcwZmUzNDJiYmQ1NWI1YzdlOGQ1ZDM3YzE0MTU1NDQ1NGVkMjU0MjllOTIxYjI0MWJiYjZmZjY1ZGRlZTMyZmUiLCJhcHBJZCI6Iml2eGwwZzlxbzMiLCJyZWdpb25zIjpbInNlYTEiXX0='
+Important : Ce token contient déjà toutes les informations nécessaires (App ID, région, API Key) . C'est la nouvelle méthode depuis UploadThing v7.
+
+Étape 2 : Vérifier l'installation des packages
+powershell
+cd C:\lms-scolaire\apps\web
+npm install uploadthing @uploadthing/react
+Étape 3 : Créer la configuration du File Router
+app/api/uploadthing/core.ts
+
+typescript
+import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { UploadThingError } from "uploadthing/server";
+import { auth } from '@clerk/nextjs/server';
+
+const f = createUploadthing();
+
+export const ourFileRouter = {
+  // Upload de PDF
+  pdfUploader: f({ pdf: { maxFileSize: "16MB", maxFileCount: 5 } })
+    .middleware(async ({ req }) => {
+      const { userId } = await auth();
+      if (!userId) throw new UploadThingError("Non authentifié");
+      return { userId };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload PDF terminé:", file.ufsUrl);
+      return { url: file.ufsUrl, name: file.name };
+    }),
+
+  // Upload de vidéo
+  videoUploader: f({ video: { maxFileSize: "256MB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => {
+      const { userId } = await auth();
+      if (!userId) throw new UploadThingError("Non authentifié");
+      return { userId };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload vidéo terminé:", file.ufsUrl);
+      return { url: file.ufsUrl, name: file.name };
+    }),
+
+  // Upload d'image
+  imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .middleware(async ({ req }) => {
+      const { userId } = await auth();
+      if (!userId) throw new UploadThingError("Non authentifié");
+      return { userId };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload image terminé:", file.ufsUrl);
+      return { url: file.ufsUrl, name: file.name };
+    }),
+
+  // Upload de document
+  documentUploader: f({ 
+    pdf: { maxFileSize: "16MB", maxFileCount: 3 },
+    "application/msword": { maxFileSize: "16MB", maxFileCount: 3 },
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": { maxFileSize: "16MB", maxFileCount: 3 }
+  })
+    .middleware(async ({ req }) => {
+      const { userId } = await auth();
+      if (!userId) throw new UploadThingError("Non authentifié");
+      return { userId };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload document terminé:", file.ufsUrl);
+      return { url: file.ufsUrl, name: file.name };
+    }),
+} satisfies FileRouter;
+
+export type OurFileRouter = typeof ourFileRouter;
+Étape 4 : Créer la route API
+app/api/uploadthing/route.ts
+
+typescript
+import { createRouteHandler } from "uploadthing/next";
+import { ourFileRouter } from "./core";
+
+export const { GET, POST } = createRouteHandler({
+  router: ourFileRouter,
+});
+Étape 5 : Créer les composants d'upload
+utils/uploadthing.ts
+
+typescript
+import {
+  generateUploadButton,
+  generateUploadDropzone,
+} from "@uploadthing/react";
+
+import type { OurFileRouter } from "@/app/api/uploadthing/core";
+
+export const UploadButton = generateUploadButton<OurFileRouter>();
+export const UploadDropzone = generateUploadDropzone<OurFileRouter>();
+Étape 6 : Créer le composant d'upload
+components/upload/FileUpload.tsx
+
+typescript
+'use client'
+
+import { UploadButton } from '@/utils/uploadthing'
+
+interface FileUploadProps {
+  onUploadComplete: (url: string, name: string) => void
+  type?: 'pdf' | 'video' | 'image' | 'document'
+}
+
+export function FileUpload({ onUploadComplete, type = 'pdf' }: FileUploadProps) {
+  const endpoint = 
+    type === 'pdf' ? 'pdfUploader' : 
+    type === 'video' ? 'videoUploader' : 
+    type === 'image' ? 'imageUploader' : 
+    'documentUploader'
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <UploadButton
+        endpoint={endpoint}
+        onClientUploadComplete={(res) => {
+          if (res && res[0]) {
+            onUploadComplete(res[0].url, res[0].name)
+          }
+        }}
+        onUploadError={(error: Error) => {
+          alert(`Erreur: ${error.message}`)
+        }}
+        appearance={{
+          button: "bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition",
+          allowedContent: "text-sm text-gray-500"
+        }}
+      />
+    </div>
+  )
+}
+Étape 7 : Ajouter les styles UploadThing
+app/globals.css
+
+css
+/* Ajouter à la fin */
+@import '@uploadthing/react/styles.css';
+Étape 8 : Modifier le formulaire de ressources
+app/(dashboard)/enseignant/chapitres/[chapterId]/contenu/components/ResourceForm.tsx
+
+typescript
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { FileUpload } from '@/components/upload/FileUpload'
+
+interface ResourceFormProps {
+  chapterId: string
+}
+
+const RESOURCE_TYPES = [
+  { value: 'PDF', label: '📄 PDF' },
+  { value: 'VIDEO', label: '🎬 Vidéo' },
+  { value: 'DOC', label: '📝 Document' },
+  { value: 'LINK', label: '🔗 Lien' },
+  { value: 'IMAGE', label: '🖼️ Image' },
+]
+
+export function ResourceForm({ chapterId }: ResourceFormProps) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [uploadMode, setUploadMode] = useState<'url' | 'file'>('url')
+  const [formData, setFormData] = useState({
+    title: '',
+    type: 'PDF',
+    url: ''
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const response = await fetch(`/api/enseignant/chapitres/${chapterId}/ressources`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+
+      if (response.ok) {
+        router.refresh()
+        setFormData({
+          title: '',
+          type: 'PDF',
+          url: ''
+        })
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Erreur lors de l\'ajout de la ressource')
+      }
+    } catch (error) {
+      console.error('Erreur:', error)
+      alert('Une erreur est survenue')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUploadComplete = (url: string, name: string) => {
+    setFormData(prev => ({
+      ...prev,
+      url,
+      title: prev.title || name
+    }))
+  }
+
+  const getUploadType = (type: string): 'pdf' | 'video' | 'image' | 'document' => {
+    if (type === 'PDF') return 'pdf'
+    if (type === 'VIDEO') return 'video'
+    if (type === 'IMAGE') return 'image'
+    return 'document'
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Titre *
+          </label>
+          <input
+            type="text"
+            required
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="Ex: Cours vidéo - Introduction"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Type *
+          </label>
+          <select
+            required
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={formData.type}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+          >
+            {RESOURCE_TYPES.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Mode d'ajout
+          </label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setUploadMode('url')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm transition ${
+                uploadMode === 'url' 
+                  ? 'bg-indigo-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              🔗 URL
+            </button>
+            <button
+              type="button"
+              onClick={() => setUploadMode('file')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm transition ${
+                uploadMode === 'file' 
+                  ? 'bg-indigo-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              📤 Fichier
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {uploadMode === 'url' ? (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            URL / Fichier *
+          </label>
+          <input
+            type="url"
+            required
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={formData.url}
+            onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+            placeholder="https://exemple.com/fichier.pdf"
+          />
+        </div>
+      ) : (
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+          <FileUpload 
+            onUploadComplete={handleUploadComplete}
+            type={getUploadType(formData.type)}
+          />
+          {formData.url && (
+            <p className="text-sm text-green-600 mt-2">
+              ✅ Fichier uploadé : {formData.url.substring(0, 50)}...
+            </p>
+          )}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={loading || !formData.url}
+        className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+      >
+        {loading ? 'Ajout en cours...' : 'Ajouter la ressource'}
+      </button>
+    </form>
+  )
+}
+Étape 9 : Redémarrer le serveur
+powershell
+cd C:\lms-scolaire\apps\web
+npm run dev
+🧪 Tester
+Connectez-vous en tant qu'enseignant
+
+Allez sur /enseignant
+
+Ouvrez un cours → "Gérer les chapitres"
+
+Cliquez sur "📄 Gérer le contenu" pour un chapitre
+
+Dans le formulaire, cliquez sur "📤 Fichier"
+
+Uploadez un PDF ou une vidéo
+
+Vérifiez que le fichier apparaît dans la liste des ressources
+
+📝 Dites-moi
+Avez-vous ajouté le token dans .env.local ?
+
+L'upload fonctionne-t-il ?
+
+Y a-t-il des erreurs dans la console ?
+
+Avec ces informations, je pourrai vous aider à passer à l'étape suivante. 🚀
+
+utils  a la source
+Le fichier utils/uploadthing.ts doit être créé à la racine du dossier web, pas dans un sous-dossier.
+
+📁 Emplacement exact
+text
+C:\lms-scolaire\apps\web\utils\uploadthing.ts
+🔧 Créer le dossier et le fichier
+Étape 1 : Créer le dossier utils
+powershell
+New-Item -ItemType Directory -Path "C:\lms-scolaire\apps\web\utils" -Force
+Étape 2 : Créer le fichier uploadthing.ts
+powershell
+New-Item -Path "C:\lms-scolaire\apps\web\utils\uploadthing.ts" -ItemType File -Force
+Étape 3 : Ajouter le code
+powershell
+code "C:\lms-scolaire\apps\web\utils\uploadthing.ts"
+Collez ce code :
+
+typescript
+import {
+  generateUploadButton,
+  generateUploadDropzone,
+} from "@uploadthing/react";
+
+import type { OurFileRouter } from "@/app/api/uploadthing/core";
+
+export const UploadButton = generateUploadButton<OurFileRouter>();
+export const UploadDropzone = generateUploadDropzone<OurFileRouter>();
+📁 Structure finale
+text
+C:\lms-scolaire\apps\web\
+├── app\
+│   └── api\
+│       └── uploadthing\
+│           ├── core.ts
+│           └── route.ts
+├── components\
+│   └── upload\
+│       └── FileUpload.tsx
+├── utils\
+│   └── uploadthing.ts          ← ICI
+└── .env.local
+🔧 Vérifier l'import dans FileUpload.tsx
+Assurez-vous que l'import est correct :
+
+typescript
+import { UploadButton } from '@/utils/uploadthing'
+Le @/ pointe vers la racine de apps/web.
+
+🚀 Redémarrer le serveur
+powershell
+cd C:\lms-scolaire\apps\web
+npm run dev
+🧪 Tester
+Connectez-vous en tant qu'enseignant
+
+Allez sur /enseignant
+
+Ouvrez un cours → "Gérer les chapitres"
+
+Cliquez sur "📄 Gérer le contenu"
+
+Cliquez sur "📤 Fichier"
+
+Uploadez un PDF
+
+Dites-moi si l'upload fonctionne maintenant ! 🚀
+
+
+
+C:\lms-scolaire\apps\web\app\
+├── api\
+│   └── enseignant\
+│       ├── cours\
+│       │   └── [courseId]\
+│       │       └── chapitres\
+│       │           ├── route.ts
+│       │           └── [chapterId]\
+│       │               └── route.ts          ← PUT, DELETE
+│       └── chapitres\
+│           └── [chapterId]\
+│               └── ressources\
+│                   ├── route.ts              ← POST, GET
+│                   └── [resourceId]\
+│                       └── route.ts          ← DELETE
+└── (dashboard)\
+    └── enseignant\
+        └── cours\
+            └── [courseId]\
+                └── chapitres\
+                    ├── page.tsx
+                    ├── components\
+                    │   └── ChapitreList.tsx
+                    └── [chapterId]\
+                        └── editer\
+                            ├── page.tsx    ← NOUVEAU
+                            └── components\
+                                └── EditerChapitreForm.tsx  ← NOUVEAU
+
+C:\lms-scolaire\apps\web\app\api\enseignant\
+├── banque\
+│   ├── route.ts
+│   └── [bankId]\
+│       ├── route.ts
+│       └── questions\
+│           ├── route.ts
+│           └── [questionId]\
+│               └── route.ts
+├── chapitres\
+│   └── [chapterId]\
+│       └── quiz\
+│           ├── route.ts
+│           └── [quizId]\
+│               ├── route.ts
+│               └── publish\
+│                   └── route.ts
+├── cours\
+│   ├── route.ts
+│   └── [courseId]\
+│       ├── route.ts
+│       └── chapitres\          ← NOUVEAU
+│           ├── route.ts        ← NOUVEAU
+│           └── [chapterId]\    ← NOUVEAU
+│               └── route.ts    ← NOUVEAU
+├── questions\
+│   └── [questionId]\
+│       └── options\
+│           └── route.ts
+└── quiz\
+    ├── csv-template\
+    │   └── route.ts
+    └── [quizId]\
+        ├── export-pdf\
+        │   └── route.ts
+        ├── import-banque\
+        │   └── route.ts
+        └── questions\
+            └── route.ts
+
+
+
+
+Le mot de passe pour le compte admin admin@ecole.fr est :
+
+text
+EduScolaire-Admin-2026!
+📋 Mots de passe de tous les comptes
+Email	Rôle	Mot de passe
+admin@ecole.fr	ADMIN	EduScolaire-Admin-2026!
+prof@ecole.fr	ENSEIGNANT	EduScolaire-Prof-2026!
+eleve@ecole.fr	ELEVE	EduScolaire-Eleve-2026!
+parent@ecole.fr	PARENT	EduScolaire-Parent-2026!
+
+
+
+psql -U postgres -d lms_scolaire
+
+
+
+# Démarrer le frontend
+cd C:\lms-scolaire\apps\web && npm run dev
+
+# Démarrer le backend
+cd C:\lms-scolaire\apps\api && npm run dev
+
+# Prisma Studio
+cd C:\lms-scolaire\apps\api && npx prisma studio
+
+# Base de données
+psql -U postgres -d lms_scolaire
+
+
+
+# Démarrer le frontend
+cd C:\lms-scolaire\apps\web && npm run dev
+
+# Démarrer le backend
+cd C:\lms-scolaire\apps\api && npm run dev
+
+# Prisma Studio
+cd C:\lms-scolaire\apps\api && npx prisma studio
+
+# Base de données
+psql -U postgres -d lms_scolaire
+
+
+
+C:\lms-scolaire\apps\web\app\(dashboard)\enseignant\banque\components\BankForm.tsx

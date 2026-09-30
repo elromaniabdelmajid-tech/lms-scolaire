@@ -1,0 +1,15 @@
+﻿<svg width="300" height="250" viewBox="0 0 300 250" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="50,200 200,200 50,50" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/>
+  <polyline points="50,180 70,180 70,200" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <line x1="50" y1="215" x2="200" y2="215" stroke="#666" stroke-width="1" stroke-dasharray="5,5"/>
+  <text x="125" y="235" text-anchor="middle" font-size="16" fill="#333">b = 8 cm</text>
+  <line x1="35" y1="50" x2="35" y2="200" stroke="#666" stroke-width="1" stroke-dasharray="5,5"/>
+  <text x="20" y="125" text-anchor="middle" font-size="16" fill="#333" transform="rotate(-90,20,125)">h = 6 cm</text>
+  <text x="145" y="105" text-anchor="middle" font-size="16" fill="#2563eb" transform="rotate(-33,145,105)">c = ?</text>
+  <circle cx="50" cy="200" r="4" fill="#2563eb"/>
+  <circle cx="200" cy="200" r="4" fill="#2563eb"/>
+  <circle cx="50" cy="50" r="4" fill="#2563eb"/>
+  <text x="35" y="220" font-size="14" fill="#333">A</text>
+  <text x="205" y="220" font-size="14" fill="#333">B</text>
+  <text x="35" y="45" font-size="14" fill="#333">C</text>
+</svg>

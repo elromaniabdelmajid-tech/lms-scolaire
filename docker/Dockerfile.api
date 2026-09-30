@@ -1,0 +1,21 @@
+# docker/Dockerfile.api
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY apps/api/package*.json ./
+COPY packages/ ../packages/
+
+# Installer les dépendances
+RUN npm install
+
+# Copier le code source
+COPY apps/api/ ./
+
+# Générer Prisma client
+RUN npx prisma generate
+
+EXPOSE 5000
+
+CMD ["npm", "run", "dev"]

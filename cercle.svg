@@ -1,0 +1,8 @@
+﻿<svg width="250" height="250" viewBox="0 0 250 250" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="125" cy="125" r="80" fill="#e0e7ff" stroke="#4f46e5" stroke-width="3"/>
+  <line x1="125" y1="125" x2="205" y2="125" stroke="#4f46e5" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="165" y="115" text-anchor="middle" font-size="16" fill="#4f46e5">r = 5 cm</text>
+  <circle cx="125" cy="125" r="4" fill="#4f46e5"/>
+  <text x="125" y="145" text-anchor="middle" font-size="14" fill="#4f46e5">O</text>
+  <text x="125" y="240" text-anchor="middle" font-size="14" fill="#666">Diamètre = 10 cm</text>
+</svg>
