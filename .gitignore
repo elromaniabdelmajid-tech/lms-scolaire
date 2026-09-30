@@ -18,8 +18,6 @@ dist/
 # Logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # OS
 .DS_Store
@@ -28,10 +26,6 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
-*.swp
-
-# Prisma
-apps/api/prisma/migrations/dev.db*
 
 # Turbopack
 .turbo/

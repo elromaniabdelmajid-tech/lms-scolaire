@@ -1,0 +1,47 @@
+interface CourseHeaderProps {
+  course: {
+    id: string
+    title: string
+    description: string | null
+    category: string | null
+    level: string | null
+  }
+  progress: number
+  instructor: { prenom: string | null, nom: string | null } | null
+}
+
+export function CourseHeader({ course, progress, instructor }: CourseHeaderProps) {
+  return (
+    <div className="bg-white rounded-xl shadow-md p-6">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">{course.title}</h1>
+          {course.description && (
+            <p className="text-gray-600 mt-2">{course.description}</p>
+          )}
+          <div className="flex gap-3 mt-3 flex-wrap">
+            {course.category && (
+              <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+                {course.category}
+              </span>
+            )}
+            {course.level && (
+              <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                {course.level}
+              </span>
+            )}
+            {instructor && (
+              <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm">
+                👨‍🏫 {instructor.prenom || ''} {instructor.nom || ''}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-3 bg-indigo-50 px-4 py-2 rounded-lg">
+          <span className="text-sm text-gray-600">Progression</span>
+          <span className="text-2xl font-bold text-indigo-600">{progress}%</span>
+        </div>
+      </div>
+    </div>
+  )
+}
