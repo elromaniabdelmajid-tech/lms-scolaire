@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: lms-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: main
+    repo: https://github.com/elromaniabdelmajid-tech/lms-scolaire
+    buildCommand: |
+      npm install &&
+      npx prisma generate --schema=apps/api/prisma/schema.prisma &&
+      npm run build --workspace=packages/shared &&
+      npm run build --workspace=packages/api-client &&
+      npm run build --workspace=apps/api
+    startCommand: node apps/api/dist/main.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: DATABASE_URL
+        value: postgresql://lms_scolaire_owner:npg_d9UvaEML4IZA@ep-still-art-b2qizqug-pooler.c-6.eu-central-1.aws.neon.tech/lms_scolaire?sslmode=require
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: FRONTEND_URL
+        value: http://localhost:3000
