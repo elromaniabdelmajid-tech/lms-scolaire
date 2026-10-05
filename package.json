@@ -1,12 +1,15 @@
 {
   "name": "lms-scolaire",
   "version": "0.1.0",
+  "packageManager": "npm@10.9.2",
   "private": true,
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
     "dev:web": "cd apps/web && npm run dev",
     "dev:api": "cd apps/api && npm run dev",
     "install:web": "cd apps/web && npm install",
@@ -18,3 +21,4 @@
     "typescript": "^5.0.0"
   }
 }
+
