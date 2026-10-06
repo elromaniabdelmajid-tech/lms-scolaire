@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd ../.. && npx prisma generate --schema=apps/api/prisma/schema.prisma && npm run build --workspace=packages/shared && npm run build --workspace=packages/api-client && npm run build --workspace=apps/web",
+  "installCommand": "cd ../.. && npm install",
+  "framework": "nextjs"
+}
